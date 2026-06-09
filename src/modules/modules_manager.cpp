@@ -294,6 +294,8 @@ void ModulesManager::update_sensors()
         }
         #endif
     }
+
+    vTaskDelay(pdMS_TO_TICKS(SENSOR_UPDATE_RATE / 10));
 }
 
 

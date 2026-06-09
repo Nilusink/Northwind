@@ -56,23 +56,41 @@ int MAX31865::read_sensor()
         }
 
         #ifdef MODULE_WSERVER
-        if (fault & MAX31865_FAULT_HIGHTHRESH) {
-            wserver::set_error_msg("RTD High Threshold"); 
+        if (fault == 0x00 || fault == 0xFF)
+        {
+            wserver::set_error_msg("MAX31865 SPI read failure");
         }
-        if (fault & MAX31865_FAULT_LOWTHRESH) {
-            wserver::set_error_msg("RTD Low Threshold"); 
-        }
-        if (fault & MAX31865_FAULT_REFINLOW) {
-            wserver::set_error_msg("REFIN- > 0.85 x Bias"); 
-        }
-        if (fault & MAX31865_FAULT_REFINHIGH) {
-            wserver::set_error_msg("REFIN- < 0.85 x Bias - FORCE- open"); 
-        }
-        if (fault & MAX31865_FAULT_RTDINLOW) {
-            wserver::set_error_msg("RTDIN- < 0.85 x Bias - FORCE- open"); 
-        }
-        if (fault & MAX31865_FAULT_OVUV) {
-            wserver::set_error_msg("Under/Over voltage");
+        else
+        {
+            bool set = false;
+            if (fault & MAX31865_FAULT_HIGHTHRESH) {
+                wserver::set_error_msg("RTD High Threshold");
+                set = true;
+            }
+            if (fault & MAX31865_FAULT_LOWTHRESH) {
+                wserver::set_error_msg("RTD Low Threshold"); 
+                set = true;
+            }
+            if (fault & MAX31865_FAULT_REFINLOW) {
+                wserver::set_error_msg("REFIN- > 0.85 x Bias"); 
+                set = true;
+            }
+            if (fault & MAX31865_FAULT_REFINHIGH) {
+                wserver::set_error_msg("REFIN- < 0.85 x Bias - FORCE- open"); 
+                set = true;
+            }
+            if (fault & MAX31865_FAULT_RTDINLOW) {
+                wserver::set_error_msg("RTDIN- < 0.85 x Bias - FORCE- open"); 
+                set = true;
+            }
+            if (fault & MAX31865_FAULT_OVUV) {
+                wserver::set_error_msg("Under/Over voltage");
+                set = true;
+            }
+            if (!set)
+            {
+                snprintf(wserver::error_msg, ERROR_MSG_MAXLEN, "unkown fault code: %02X", fault);
+            }
         }
         #endif
 
