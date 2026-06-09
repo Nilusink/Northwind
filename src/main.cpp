@@ -27,24 +27,15 @@ void setup()
     Wire.begin();
     #endif
 
-    // setup debug neopixel
-    #ifdef MODULE_NEO_PIXEL
-    outputs::neo_pixel.begin();
-    outputs::neo_pixel.setPixelColor(0, outputs::neo_pixel.Color(63, 63, 0));
-    outputs::neo_pixel.show();
-    #endif
-
     // setup devices
     mgr.setup();
 
-    #ifdef MODULE_NEO_PIXEL
-    outputs::neo_pixel.setPixelColor(0, outputs::neo_pixel.Color(0, 0, 0));
-    outputs::neo_pixel.show();
-    #endif
+    // create tasks
+    mgr.create_tasks();
 }
 
 
 void loop()
 {
-    mgr.update();
+    vTaskDelay(portMAX_DELAY);
 }

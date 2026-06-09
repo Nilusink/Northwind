@@ -12,6 +12,13 @@ ModulesManager::ModulesManager()
 
 void ModulesManager::setup()
 {
+    // setup debug neopixel
+    #ifdef MODULE_NEO_PIXEL
+    outputs::neo_pixel.begin();
+    outputs::neo_pixel.setPixelColor(0, outputs::neo_pixel.Color(32, 32, 63));
+    outputs::neo_pixel.show();
+    #endif
+
     // give i2c time to setup
     delay(100);
 
@@ -32,47 +39,85 @@ void ModulesManager::setup()
         #ifdef MODULE_OLED
         oled.wifi_fail();
         #endif
+
         for (;;);
     }
 
     #ifdef MODULE_WSERVER
     wserver::setup();
     #endif
+
+    // create connectivity task
+    xTaskCreate(
+        connectivity_task_wrapper,
+        "connectivity task",
+        8192,
+        this,
+        1,
+        NULL
+    );
+    #endif
+
+    #ifdef MODULE_NEO_PIXEL
+    outputs::neo_pixel.begin();
+    outputs::neo_pixel.setPixelColor(0, outputs::neo_pixel.Color(63, 63, 0));
+    outputs::neo_pixel.show();
     #endif
 
     // sensors
     #ifdef MODULE_OLED
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("OLED failed");
+    #endif
     oled.setting_up();
     #endif
 
     #ifdef MODULE_TMP117
     delay(100);
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("TMP117 failed");
+    #endif
     tmp.setup();
     delay(400);
     #endif
 
     #ifdef MODULE_SHT45
     delay(100);
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("SHT4x failed");
+    #endif
     sht4x.setup();
     #endif
 
     #ifdef MODULE_SHT31
     delay(100);
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("SHT3x failed");
+    #endif
     sht.setup();
     delay(400);
     #endif
 
     #ifdef MODULE_BMP388
     delay(100);
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("BMP3xx failed");
+    #endif
     bmp3.setup();
     delay(400);
     #endif
 
     #ifdef MODULE_LDR
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("LDR failed");
+    #endif
     ldr::setup();
     #endif
 
     #ifdef MODULE_MAX31865
+    #ifdef MODULE_WSERVER
+    wserver::set_error_msg("MAX31865 failed");
+    #endif
     sensor_max.setup();
     #endif
 
@@ -82,9 +127,19 @@ void ModulesManager::setup()
     #endif
 
     last_update = millis() - 1000;
+
+    #ifdef MODULE_NEO_PIXEL
+    outputs::neo_pixel.setPixelColor(0, outputs::neo_pixel.Color(0, 0, 0));
+    outputs::neo_pixel.show();
+    #endif
+
+    #ifdef MODULE_WSERVER
+    wserver::clear_error_msg();
+    #endif
+
 }
 
-void ModulesManager::update()
+void ModulesManager::update_sensors()
 {
     uint32_t timestamp = millis();
 
@@ -239,7 +294,11 @@ void ModulesManager::update()
         }
         #endif
     }
+}
 
+
+void ModulesManager::update_connectivity()
+{
     // check for wifi status
     #ifdef MODULE_WIFI
     wifi.update();
@@ -251,4 +310,47 @@ void ModulesManager::update()
     wserver::server.handleClient();
     yield();
     #endif
+}
+
+
+void ModulesManager::create_tasks()
+{
+    // create sensor task
+    xTaskCreate(
+        sensors_task_wrapper,
+        "sensor task",
+        4096,
+        this,
+        1,
+        NULL
+    );
+}
+
+
+void ModulesManager::sensors_task_wrapper(void *pv) {
+    ModulesManager *obj = static_cast<ModulesManager *>(pv);
+
+    // run continuously
+    for (;;)
+    {
+        obj->update_sensors();
+        // Serial.printf(
+        //     "Remaining s stack: %u\n",
+        //     uxTaskGetStackHighWaterMark(NULL)
+        // );
+    }
+}
+
+void ModulesManager::connectivity_task_wrapper(void *pv) {
+    ModulesManager *obj = static_cast<ModulesManager *>(pv);
+
+    // run continuously
+    for (;;)
+    {
+        obj->update_connectivity();
+        // Serial.printf(
+        //     "Remaining c stack: %u\n",
+        //     uxTaskGetStackHighWaterMark(NULL)
+        // );
+    }
 }

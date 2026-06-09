@@ -86,6 +86,15 @@ namespace modules
             interfaces::Wifi wifi;
             #endif
 
+
+            static void sensors_task_wrapper(void *pv);
+            static void connectivity_task_wrapper(void *pv);
+
+            /** update all hardware modules */
+            void update_sensors();
+            /** update wifi + server */
+            void update_connectivity();
+
         public:
             ModulesManager();
 
@@ -95,8 +104,10 @@ namespace modules
              */
             void setup();
 
-            /** update all modules */
-            void update();
+            /**
+             * @brief create all necessary tasks
+             * 
+             */
+            void create_tasks();
     };
-
 }

@@ -20,6 +20,8 @@
 #include <ArduinoJson.h>
 
 
+#define ERROR_MSG_MAXLEN 2048
+
 namespace wserver
 {
     #ifdef ESP8266
@@ -31,10 +33,12 @@ namespace wserver
 
     extern JsonDocument weather_data;
     extern JsonDocument brightness_data;
+    extern char error_msg[ERROR_MSG_MAXLEN];
 
     // endpoints
     void handle_not_found();
     void handle_weather();
+    void handle_error_msg();
     
     #ifdef MODULE_PBUTTON
     void handle_blink_button();
@@ -49,4 +53,11 @@ namespace wserver
      * 
      */
     void setup();
+
+    /**
+     * @brief set error message
+     * 
+     */
+    void set_error_msg(const char *msg);
+    void clear_error_msg();
 } // namespace wserver

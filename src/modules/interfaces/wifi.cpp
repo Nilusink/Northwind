@@ -140,7 +140,9 @@ void Wifi::update()
         outputs::set_pixel_color(0, 0, 0);
         #endif
     }
-
-    // handle OTA
-    ArduinoOTA.handle();
+    else
+    {
+        // handle OTA
+        ArduinoOTA.handle();
+    }
 }
