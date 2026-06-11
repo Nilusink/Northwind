@@ -1,0 +1,3 @@
+[submodule "lib/AuroraPulse"]
+	path = lib/AuroraPulse
+	url = https://github.com/Nilusink/AuroraPulse.git
