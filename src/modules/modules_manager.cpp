@@ -1,11 +1,21 @@
 #include "modules_manager.hpp"
+#include "modules/interfaces/wifi_config.h"
 
 
 using namespace modules;
 
 ModulesManager::ModulesManager()
+#if defined(MODULE_MAX31865) || defined(MODULE_WIFI)
+ : 
+#endif
+#ifdef MODULE_WIFI
+    connection(IPAddress(MANAGER_IP), MANAGER_PORT, IPAddress(GATEWAY), IPAddress(SUBNET), IPAddress(DNS))
 #ifdef MODULE_MAX31865
-  : sensor_max(7, 3)
+    ,
+#endif
+#endif
+#ifdef MODULE_MAX31865
+  sensor_max(7, 3)
 #endif
 {}
 
@@ -34,7 +44,7 @@ void ModulesManager::setup()
     oled.wifi_connecting();
     #endif
 
-    if (!wifi.auto_connect())
+    if (!connection.initialize(SSID, PASSWORD))
     {
         #ifdef MODULE_OLED
         oled.wifi_fail();
@@ -45,7 +55,6 @@ void ModulesManager::setup()
 
     #ifdef MODULE_WSERVER
     wserver::setup();
-    #endif
 
     // create connectivity task
     xTaskCreate(
@@ -56,6 +65,10 @@ void ModulesManager::setup()
         1,
         NULL
     );
+    #endif
+
+    // create AuroraCOnnect task
+    connection.start_task();
     #endif
 
     #ifdef MODULE_NEO_PIXEL
@@ -301,15 +314,13 @@ void ModulesManager::update_sensors()
 
 void ModulesManager::update_connectivity()
 {
-    // check for wifi status
-    #ifdef MODULE_WIFI
-    wifi.update();
-    #endif
-
     // wserver
     #ifdef MODULE_WSERVER
     // handle clients
-    wserver::server.handleClient();
+    if (connection.get_connected())
+    {
+        wserver::server.handleClient();
+    }
     yield();
     #endif
 }

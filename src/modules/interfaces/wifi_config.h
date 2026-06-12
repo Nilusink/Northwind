@@ -5,4 +5,5 @@
 #define SUBNET 255, 255, 254, 0
 #define DNS 1, 1, 1, 1
 
-#define MANAGER_ADDRESS "http://192.168.68.52:12345"
+#define MANAGER_IP 192, 168, 68, 52
+#define MANAGER_PORT 12345
