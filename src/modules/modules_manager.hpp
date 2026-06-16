@@ -49,7 +49,7 @@
 
 // interfaces
 #ifdef MODULE_WIFI
-#include "modules/interfaces/wifi.hpp"
+#include "AuroraConnect.hpp"
 #endif
 
 #ifdef MODULE_WSERVER
@@ -83,9 +83,8 @@ namespace modules
             outputs::OLED oled;
             #endif
             #ifdef MODULE_WIFI
-            interfaces::Wifi wifi;
+            Aurora::Connection connection;
             #endif
-
 
             static void sensors_task_wrapper(void *pv);
             static void connectivity_task_wrapper(void *pv);
