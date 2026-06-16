@@ -1,4 +1,5 @@
 #include "wserver.hpp"
+#include <time.h>
 
 #ifdef MODULE_SHT31
 #include "modules/sensors/sht31.hpp"
@@ -94,10 +95,19 @@ void wserver::setup()
 }
 
 
+struct tm timeinfo;
 void wserver::set_error_msg(const char *msg)
 {
     // copy message to buffer
-    strncpy(error_msg, msg, ERROR_MSG_MAXLEN);
+    if (getLocalTime(&timeinfo))
+    {
+        // add time prefix
+        snprintf(error_msg, ERROR_MSG_MAXLEN, "%Y-%m-%d %H:%M:%S> %s", &timeinfo, msg);
+    }
+    else
+    {
+        strncpy(error_msg, msg, ERROR_MSG_MAXLEN);
+    }
 
     // make sure null terminator exists
     error_msg[ERROR_MSG_MAXLEN-1] = 0;

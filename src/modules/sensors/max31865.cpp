@@ -98,7 +98,13 @@ int MAX31865::read_sensor()
 
         return -1;  // return fail
     }
-    last_temp = probe.temperature(RNOMINAL, RREF);
+    float now = probe.temperature(RNOMINAL, RREF);
+
+    // check for invalid readings
+    if (now < -100)
+        return -1;
+
+        last_temp = now;
 
     return 0;  // return success
 }
