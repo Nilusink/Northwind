@@ -2,6 +2,11 @@
 #include "modules/interfaces/wifi_config.h"
 
 
+#ifdef ESP32
+#define USE_RTOS
+#endif
+
+
 using namespace modules;
 
 ModulesManager::ModulesManager()
@@ -57,6 +62,7 @@ void ModulesManager::setup()
     wserver::setup();
 
     // create connectivity task
+    #ifdef USE_RTOS
     xTaskCreate(
         connectivity_task_wrapper,
         "connectivity task",
@@ -65,6 +71,9 @@ void ModulesManager::setup()
         1,
         NULL
     );
+    #else
+    update_connectivity();
+    #endif
     #endif
 
     // create AuroraCOnnect task
@@ -308,7 +317,11 @@ void ModulesManager::update_sensors()
         #endif
     }
 
+    #ifdef USE_RTOS
     vTaskDelay(pdMS_TO_TICKS(SENSOR_UPDATE_RATE / 10));
+    #else
+    delay(5);
+    #endif
 }
 
 
@@ -328,6 +341,7 @@ void ModulesManager::update_connectivity()
 
 void ModulesManager::create_tasks()
 {
+    #ifdef USE_RTOS
     // create sensor task
     xTaskCreate(
         sensors_task_wrapper,
@@ -337,6 +351,14 @@ void ModulesManager::create_tasks()
         1,
         NULL
     );
+    #else
+    for (;;)
+    {
+        update_sensors();
+        update_connectivity();
+        connection.update(millis());
+    }
+    #endif
 }
 
 

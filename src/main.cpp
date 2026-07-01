@@ -34,8 +34,4 @@ void setup()
     mgr.create_tasks();
 }
 
-
-void loop()
-{
-    vTaskDelay(portMAX_DELAY);
-}
+void loop() {delay(10);};
